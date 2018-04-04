@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", (e) => {
    const row3 = document.getElementById("row3")
    let player1 = ""
    let player2 = ""
+   let gameEnded = false
 
 
    const gameBoard = (() => {
@@ -99,14 +100,23 @@ document.addEventListener("DOMContentLoaded", (e) => {
       const gameOver = result => {
          if (result === 'X') {
             alert(`Game over! ${player1.name} wins!`)
-            startButton.removeAttribute("disabled", "")
+            nextRoundButton.removeAttribute("disabled", "")
+            lockBoard()
          } else if (result === 'O') {
             alert(`Game over! ${player2.name} wins!`)
-            startButton.removeAttribute("disabled", "")
+            nextRoundButton.removeAttribute("disabled", "")
+            lockBoard()
          } else if (result === undefined) {
          } else {
             alert(`Game over! It's a tie!`)
-            startButton.removeAttribute("disabled", "")
+            nextRoundButton.removeAttribute("disabled", "")
+            lockBoard()
+         }
+         // prevents squares from being clicked on after the game is over
+         function lockBoard () {
+            let blankSquares = gameBoard.squareArray.filter(square => square.mark === undefined)
+            blankSquares.forEach((square) => {square.mark = '-'})
+            gameEnded = true
          }
       }
 
@@ -132,7 +142,9 @@ document.addEventListener("DOMContentLoaded", (e) => {
          // this is each move of the game
          domSquare.addEventListener('click', (e) => {
             if (!gameLogic.isValidMove(domSquare)) { // doesn't let you mark squares that are already marked.
+               if (gameEnded) {alert('The game is over. Start a new round.')} else {
                alert('Not a valid move! You can only mark blank spaces.')
+               }
             }   else if (gameLogic.turnCount % 2 === 0) { //if turn count is even, it's player 2's turn (i.e.: Os get placed). if not, it's player 1's turn (i.e.: Xs get placed)
                gameBoard.addMark(domSquare, 'O')
                gameLogic.turnCount++
