@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", (e) => {
    const row1 = document.getElementById("row1")
    const row2 = document.getElementById("row2")
    const row3 = document.getElementById("row3")
+   let player1 = ""
+   let player2 = ""
 
 
    const gameBoard = (() => {
@@ -45,14 +47,17 @@ document.addEventListener("DOMContentLoaded", (e) => {
       //adds an X or O to both the DOM and to the internal value of the square in the squareArray
       const addMark = (domSquare, mark) => {
          const squareMark = document.createElement('h1')
+         squareMark.setAttribute("class", "display-1 h-100 pt-4")
          squareMark.textContent = mark
          domSquare.appendChild(squareMark)
          let clickedSquare = squareArray.find( square => square.id === domSquare.id)
          clickedSquare.mark = mark
          console.log(`Clicked Square ID: ${domSquare.id}, Mark: ${clickedSquare.mark}`) //debug
       }
+      //resets board when game ends
+      const resetBoard = () => {}
 
-      return {squareArray, renderBoard, addMark}
+      return {squareArray, renderBoard, addMark, resetBoard}
    })()
 
    const Player = (name, number) => {
@@ -60,14 +65,51 @@ document.addEventListener("DOMContentLoaded", (e) => {
    }
 
    const Square = (id) => {
-      let mark = ""
+      let mark
       return {id, mark}
    }
 
    const gameLogic = (() => {
-      const isWin = () => {}
+      const isWin = () => { // probably could be more efficient, but checks for 3 in a row.
+         if (gameBoard.squareArray[0].mark === gameBoard.squareArray[1].mark && gameBoard.squareArray[0].mark === gameBoard.squareArray[2].mark) {
+            gameOver(gameBoard.squareArray[0].mark)
+         } else if (gameBoard.squareArray[0].mark === gameBoard.squareArray[3].mark && gameBoard.squareArray[0].mark === gameBoard.squareArray[6].mark) {
+            gameOver(gameBoard.squareArray[0].mark)
+         } else if (gameBoard.squareArray[0].mark === gameBoard.squareArray[4].mark && gameBoard.squareArray[0].mark === gameBoard.squareArray[8].mark) {
+            gameOver(gameBoard.squareArray[0].mark)
+         } else if (gameBoard.squareArray[3].mark === gameBoard.squareArray[4].mark && gameBoard.squareArray[3].mark === gameBoard.squareArray[5].mark) {
+            gameOver(gameBoard.squareArray[3].mark)
+         } else if (gameBoard.squareArray[6].mark === gameBoard.squareArray[4].mark && gameBoard.squareArray[6].mark === gameBoard.squareArray[2].mark) {
+            gameOver(gameBoard.squareArray[6].mark)
+         } else if (gameBoard.squareArray[6].mark === gameBoard.squareArray[7].mark && gameBoard.squareArray[6].mark === gameBoard.squareArray[8].mark) {
+            gameOver(gameBoard.squareArray[6].mark)
+         } else if (gameBoard.squareArray[1].mark === gameBoard.squareArray[4].mark && gameBoard.squareArray[1].mark === gameBoard.squareArray[7].mark) {
+            gameOver(gameBoard.squareArray[1].mark)
+         } else if (gameBoard.squareArray[2].mark === gameBoard.squareArray[5].mark && gameBoard.squareArray[2].mark === gameBoard.squareArray[8].mark) {
+            gameOver(gameBoard.squareArray[2].mark)
+         }
+      }
       const isTie = () => {}
-      const isValidMove = () => {}
+      // it's a valid move if the square in question isn't currently marked
+      const isValidMove = (domSquare) => {
+         let actualSquare = gameBoard.squareArray.find(square => square.id === domSquare.id)
+         return actualSquare.mark ? false : true
+      }
+
+      const gameOver = result => {
+         if (result === 'X') {
+            alert(`Game over! ${player1.name} wins!`)
+            startButton.removeAttribute("disabled", "")
+         } else if (result === 'O') {
+            alert(`Game over! ${player2.name} wins!`)
+            startButton.removeAttribute("disabled", "")
+         } else if (result === undefined) {
+         } else {
+            alert(`Game over! It's a tie!`)
+            startButton.removeAttribute("disabled", "")
+         }
+      }
+
       let turnCount = 1
 
       return {isWin, isTie, isValidMove, turnCount}
@@ -84,18 +126,22 @@ document.addEventListener("DOMContentLoaded", (e) => {
       console.log(`Turn count: ${gameLogic.turnCount}`) //debug
       const gameSquares = document.querySelectorAll('.gameSquare')
       gameSquares.forEach((domSquare) => {
-         domSquare.addEventListener('mouseenter', (e) => {domSquare.style.background = 'green'})
+         domSquare.addEventListener('mouseenter', (e) => {gameLogic.isValidMove(domSquare) ? domSquare.style.background = 'green' : domSquare.style.background = 'red'}) //changes moused-over square color based on if the move is valid or not
          domSquare.addEventListener('mouseleave', (e) => {domSquare.style.background = 'white'})
 
          // this is each move of the game
          domSquare.addEventListener('click', (e) => {
-            if (gameLogic.turnCount % 2 === 0) { //if turn count is even, it's player 2's turn (i.e.: Os get placed). if not, it's player 1's turn (i.e.: Xs get placed)
+            if (!gameLogic.isValidMove(domSquare)) { // doesn't let you mark squares that are already marked.
+               alert('Not a valid move! You can only mark blank spaces.')
+            }   else if (gameLogic.turnCount % 2 === 0) { //if turn count is even, it's player 2's turn (i.e.: Os get placed). if not, it's player 1's turn (i.e.: Xs get placed)
                gameBoard.addMark(domSquare, 'O')
                gameLogic.turnCount++
+               gameLogic.isWin()
                console.log(`Turn count: ${gameLogic.turnCount}`) //debug
             } else {
                gameBoard.addMark(domSquare, 'X')
                gameLogic.turnCount++
+               gameLogic.isWin()
                console.log(`Turn count: ${gameLogic.turnCount}`) //debug
             }
          })
